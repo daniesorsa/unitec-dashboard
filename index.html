@@ -1,0 +1,1986 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNITEC — Producción Científica</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── DESIGN TOKENS ─────────────────────────────────────────────────────────── */
+:root {
+  /* Dark theme (default) */
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1c2330;
+  --surface3: #21262d;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --accent: #58a6ff;
+  --accent-dim: rgba(88,166,255,0.15);
+  --accent2: #e6b44e;
+  --accent2-dim: rgba(230,180,78,0.15);
+  --accent3: #f47067;
+  --accent3-dim: rgba(244,112,103,0.15);
+  --accent4: #3fb950;
+  --accent4-dim: rgba(63,185,80,0.15);
+  --accent5: #a371f7;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --text-dim: #484f58;
+  --unitec: #58a6ff;
+  --unah: #a371f7;
+  --eapz: #e6b44e;
+  --upnfm: #3fb950;
+  --male: #79c0ff;
+  --female: #f778ba;
+  --shadow: 0 4px 20px rgba(0,0,0,0.4);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+  --sidebar-w: 240px;
+  --chart-bg-grid: rgba(255,255,255,0.04);
+  --chart-tick-color: #6e7681;
+  --chart-tooltip-bg: #1c2330;
+  --chart-tooltip-title: #e6edf3;
+  --chart-tooltip-body: #8b949e;
+}
+
+[data-theme="light"] {
+  --bg: #f6f8fa;
+  --surface: #ffffff;
+  --surface2: #f0f4f8;
+  --surface3: #e8edf2;
+  --border: rgba(0,0,0,0.09);
+  --border2: rgba(0,0,0,0.16);
+  --accent: #0969da;
+  --accent-dim: rgba(9,105,218,0.1);
+  --accent2: #9a6700;
+  --accent2-dim: rgba(154,103,0,0.1);
+  --accent3: #cf222e;
+  --accent3-dim: rgba(207,34,46,0.1);
+  --accent4: #1a7f37;
+  --accent4-dim: rgba(26,127,55,0.1);
+  --accent5: #8250df;
+  --text: #1f2328;
+  --text-muted: #656d76;
+  --text-dim: #adbac7;
+  --unitec: #0969da;
+  --unah: #8250df;
+  --eapz: #9a6700;
+  --upnfm: #1a7f37;
+  --male: #0550ae;
+  --female: #bf3989;
+  --shadow: 0 2px 12px rgba(0,0,0,0.12);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.08);
+  --chart-bg-grid: rgba(0,0,0,0.05);
+  --chart-tick-color: #8b949e;
+  --chart-tooltip-bg: #ffffff;
+  --chart-tooltip-title: #1f2328;
+  --chart-tooltip-body: #656d76;
+}
+
+/* ─── RESET & BASE ───────────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.65;
+  transition: background 0.25s, color 0.25s;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── LAYOUT ─────────────────────────────────────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  min-height: 100vh;
+}
+
+/* ─── SIDEBAR ────────────────────────────────────────────────────────────────── */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  transition: background 0.25s, border-color 0.25s;
+  z-index: 100;
+}
+
+.sidebar-top {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo-unitec {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+}
+
+.logo-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-top: 5px;
+}
+
+.sidebar-controls {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.theme-toggle {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: 'IBM Plex Sans', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.theme-icon { font-size: 14px; }
+
+.nav-section { padding: 16px 8px; flex: 1; }
+.nav-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0 12px 10px;
+  display: block;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 400;
+  transition: all 0.15s ease;
+  margin-bottom: 1px;
+  user-select: none;
+  border: 1px solid transparent;
+  position: relative;
+}
+.nav-item:hover {
+  background: var(--surface2);
+  color: var(--text);
+  border-color: var(--border);
+}
+.nav-item.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-weight: 500;
+  border-color: rgba(88,166,255,0.2);
+}
+[data-theme="light"] .nav-item.active {
+  border-color: rgba(9,105,218,0.2);
+}
+.nav-icon {
+  font-size: 15px;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+.nav-item.active .nav-icon { opacity: 1; }
+
+.nav-item .nav-badge {
+  margin-left: auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  background: var(--surface3);
+  border-radius: 10px;
+  padding: 1px 7px;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 2;
+}
+.sidebar-footer strong { color: var(--text-muted); font-weight: 500; }
+
+/* ─── MAIN ───────────────────────────────────────────────────────────────────── */
+.main { overflow-y: auto; background: var(--bg); }
+
+/* ─── PAGE ───────────────────────────────────────────────────────────────────── */
+.page {
+  display: none;
+  padding: 36px 40px;
+  max-width: 1280px;
+  animation: pageIn 0.3s cubic-bezier(0.22,1,0.36,1);
+}
+.page.active { display: block; }
+
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── PAGE HEADER ────────────────────────────────────────────────────────────── */
+.page-header {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.page-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.page-eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 1px;
+  background: var(--accent);
+  opacity: 0.5;
+}
+
+.page-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.4px;
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+.page-title em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.page-desc {
+  color: var(--text-muted);
+  font-size: 14px;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+/* ─── KPI CARDS ──────────────────────────────────────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.kpi-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 8px 8px 0 0;
+  transition: opacity 0.2s;
+  opacity: 0;
+}
+.kpi-card:hover { border-color: var(--border2); box-shadow: var(--shadow-sm); }
+.kpi-card:hover::after { opacity: 1; }
+.kpi-card.yellow::after { background: var(--accent2); }
+.kpi-card.red::after    { background: var(--accent3); }
+.kpi-card.green::after  { background: var(--accent4); }
+.kpi-card.purple::after { background: var(--accent5); }
+
+.kpi-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+.kpi-value {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  letter-spacing: -0.5px;
+  transition: color 0.2s;
+}
+.kpi-card.yellow .kpi-value { color: var(--accent2); }
+.kpi-card.red    .kpi-value { color: var(--accent3); }
+.kpi-card.green  .kpi-value { color: var(--accent4); }
+.kpi-card.purple .kpi-value { color: var(--accent5); }
+
+.kpi-sub {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  margin-top: 7px;
+  line-height: 1.4;
+}
+
+/* ─── CHART GRID ─────────────────────────────────────────────────────────────── */
+.chart-grid {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.chart-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.chart-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 22px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.chart-card:hover { border-color: var(--border2); box-shadow: var(--shadow-sm); }
+.chart-card.full { grid-column: 1 / -1; }
+
+.chart-head {
+  margin-bottom: 18px;
+}
+.chart-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+.chart-subtitle {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 3px;
+}
+.chart-container { position: relative; }
+
+/* ─── INSIGHT BOX ────────────────────────────────────────────────────────────── */
+.insight {
+  background: var(--surface2);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  padding: 12px 16px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-top: 14px;
+}
+.insight.yellow { border-color: var(--accent2); }
+.insight.red    { border-color: var(--accent3); }
+.insight.green  { border-color: var(--accent4); }
+.insight strong { color: var(--text); font-weight: 600; }
+.insight em     { color: var(--accent); font-style: normal; font-weight: 500; }
+
+/* ─── NOTE ───────────────────────────────────────────────────────────────────── */
+.note {
+  background: var(--accent2-dim);
+  border: 1px solid rgba(230,180,78,0.25);
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 12.5px;
+  color: var(--accent2);
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+[data-theme="light"] .note { color: var(--accent2); }
+.note .ni { flex-shrink: 0; margin-top: 1px; }
+
+/* ─── TABLE ──────────────────────────────────────────────────────────────────── */
+.table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.table-header {
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.table-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+table { width: 100%; border-collapse: collapse; }
+th {
+  padding: 10px 22px;
+  text-align: left;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  font-weight: 500;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 11px 22px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  vertical-align: top;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 4px;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.02em;
+}
+.badge-blue   { background: var(--accent-dim);  color: var(--accent);  }
+.badge-yellow { background: var(--accent2-dim); color: var(--accent2); }
+.badge-green  { background: var(--accent4-dim); color: var(--accent4); }
+.badge-purple { background: rgba(163,113,247,0.15); color: var(--accent5); }
+.badge-red    { background: var(--accent3-dim); color: var(--accent3); }
+
+/* ─── LEGEND ─────────────────────────────────────────────────────────────────── */
+.legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.legend-line {
+  width: 20px; height: 2px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ─── GENDER GRID ────────────────────────────────────────────────────────────── */
+.gender-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.donut-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+.donut-num {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+.donut-lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* ─── DIVIDER ────────────────────────────────────────────────────────────────── */
+.divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+/* ─── STAT ROW ───────────────────────────────────────────────────────────────── */
+.stat-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.stat-item {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.stat-num {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+.stat-label {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ─── MOBILE TOGGLE ──────────────────────────────────────────────────────────── */
+.menu-toggle {
+  display: none;
+  position: fixed;
+  top: 14px; left: 14px;
+  z-index: 1001;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--accent);
+  font-size: 17px;
+  width: 42px; height: 42px;
+  border-radius: 8px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
+}
+.menu-toggle:hover { background: var(--surface2); }
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 99;
+  backdrop-filter: blur(2px);
+}
+
+/* ─── ANIMATIONS ─────────────────────────────────────────────────────────────── */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.kpi-value.animate {
+  animation: countUp 0.5s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .menu-toggle { display: flex; }
+  .layout { grid-template-columns: 1fr; }
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    top: 0; bottom: 0;
+    width: var(--sidebar-w);
+    z-index: 100;
+    transition: left 0.28s cubic-bezier(0.22,1,0.36,1);
+    box-shadow: none;
+  }
+  .sidebar.open {
+    left: 0;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+  }
+  .sidebar-overlay.open { display: block; }
+  .page { padding: 20px 18px; padding-top: 68px; }
+  .chart-grid.cols-2,
+  .chart-grid.cols-3 { grid-template-columns: 1fr; }
+  .gender-grid { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .page-title { font-size: 24px; }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .page { padding: 16px 14px; padding-top: 64px; }
+}
+
+/* ─── SCROLLBAR ──────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+/* ─── SELECTION ──────────────────────────────────────────────────────────────── */
+::selection { background: var(--accent-dim); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<button class="menu-toggle" id="menuBtn" onclick="toggleSidebar()" title="Menú">☰</button>
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="logo-unitec">UNITEC</div>
+      <div class="logo-sub">Producción Científica</div>
+    </div>
+    <div class="sidebar-controls">
+      <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
+        <span class="theme-icon">🌙</span>
+        <span id="themeLabel">Modo Claro</span>
+      </button>
+    </div>
+    <nav class="nav-section">
+      <span class="nav-label">Secciones</span>
+      <div class="nav-item active" onclick="showPage('overview')">
+        <span class="nav-icon">◈</span> Resumen General
+        <span class="nav-badge">820</span>
+      </div>
+      <div class="nav-item" onclick="showPage('temporal')">
+        <span class="nav-icon">◷</span> Evolución Temporal
+      </div>
+      <div class="nav-item" onclick="showPage('facultades')">
+        <span class="nav-icon">◫</span> Por Facultad
+      </div>
+      <div class="nav-item" onclick="showPage('tipos')">
+        <span class="nav-icon">⬡</span> Tipos de Documento
+      </div>
+      <div class="nav-item" onclick="showPage('citaciones')">
+        <span class="nav-icon">◑</span> Citaciones
+      </div>
+      <div class="nav-item" onclick="showPage('comparacion')">
+        <span class="nav-icon">⇌</span> Comparación
+      </div>
+      <div class="nav-item" onclick="showPage('genero')">
+        <span class="nav-icon">◉</span> Género y Autoría
+      </div>
+      <div class="nav-item" onclick="showPage('autores')">
+        <span class="nav-icon">★</span> Autores Clave
+      </div>
+      <div class="nav-item" onclick="showPage('toppapers')">
+        <span class="nav-icon">⬟</span> Top Publicaciones
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <strong>Fuente:</strong> Scopus<br>
+      <strong>Actualización:</strong> Mar 2026<br>
+      <strong>Publicaciones:</strong> 820<br>
+      <strong>Autores UNITEC:</strong> 804
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- ─── OVERVIEW ──────────────────────────────────────────────────────────── -->
+    <div class="page active" id="page-overview">
+      <div class="page-header">
+        <div class="page-eyebrow">Scopus · 2006–2026</div>
+        <div class="page-title">Resumen <em>UNITEC</em></div>
+        <div class="page-desc">Estadísticas generales de producción científica registradas en Scopus. Los datos incluyen publicaciones desde 2006 hasta marzo de 2026.</div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Publicaciones totales</div>
+          <div class="kpi-value">820</div>
+          <div class="kpi-sub">Registradas en Scopus</div>
+        </div>
+        <div class="kpi-card yellow">
+          <div class="kpi-label">Citaciones totales</div>
+          <div class="kpi-value">3,189</div>
+          <div class="kpi-sub">Suma acumulada</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-label">Citas promedio</div>
+          <div class="kpi-value">3.89</div>
+          <div class="kpi-sub">Por publicación</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Citas máximas</div>
+          <div class="kpi-value">264</div>
+          <div class="kpi-sub">Publicación más citada</div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-label">Autores únicos</div>
+          <div class="kpi-value">804</div>
+          <div class="kpi-sub">Identificados en Scopus</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Docentes investigadores</div>
+          <div class="kpi-value">192</div>
+          <div class="kpi-sub">Según blog UNITEC</div>
+        </div>
+        <div class="kpi-card yellow">
+          <div class="kpi-label">Facultades</div>
+          <div class="kpi-value">8</div>
+          <div class="kpi-sub">Unidades académicas</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Acceso Abierto</div>
+          <div class="kpi-value">50.5%</div>
+          <div class="kpi-sub">414 de 820 publicaciones</div>
+        </div>
+      </div>
+
+      <div class="chart-grid cols-2">
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Publicaciones por Facultad</div>
+            <div class="chart-subtitle">Distribución del total de 820 publicaciones</div>
+          </div>
+          <div class="chart-container" style="height:230px">
+            <canvas id="chartFacPie"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Distribución por Sede</div>
+            <div class="chart-subtitle">Tegucigalpa, San Pedro Sula y colaboraciones</div>
+          </div>
+          <div class="chart-container" style="height:230px">
+            <canvas id="chartSedePie"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card full">
+          <div class="chart-head">
+            <div class="chart-title">Crecimiento de Publicaciones por Año (2016–2025)</div>
+            <div class="chart-subtitle">Evolución anual del volumen publicado en Scopus</div>
+          </div>
+          <div class="chart-container" style="height:230px">
+            <canvas id="chartGrowth"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-grid cols-3">
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Acceso Abierto</div>
+            <div class="chart-subtitle">Open vs Closed Access</div>
+          </div>
+          <div class="chart-container" style="height:180px">
+            <canvas id="chartOA"></canvas>
+          </div>
+        </div>
+        <div class="chart-card" style="grid-column: span 2;">
+          <div class="chart-head">
+            <div class="chart-title">Tipos de Documento</div>
+            <div class="chart-subtitle">Distribución por categoría</div>
+          </div>
+          <div class="chart-container" style="height:180px">
+            <canvas id="chartDocOverview"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── TEMPORAL ──────────────────────────────────────────────────────────── -->
+    <div class="page" id="page-temporal">
+      <div class="page-header">
+        <div class="page-eyebrow">Análisis longitudinal</div>
+        <div class="page-title">Evolución <em>Temporal</em></div>
+        <div class="page-desc">Tendencias históricas de publicaciones y citaciones por año (2016–2025)</div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card full">
+          <div class="chart-head">
+            <div class="chart-title">Publicaciones y Citaciones por Año</div>
+            <div class="chart-subtitle">Eje izquierdo: publicaciones · Eje derecho: citaciones totales</div>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Publicaciones</div>
+            <div class="legend-item"><div class="legend-line" style="background:var(--accent2)"></div>Citaciones</div>
+          </div>
+          <div class="chart-container" style="height:270px">
+            <canvas id="chartDualAxis"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-grid cols-2">
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Promedio de Citaciones por Año</div>
+            <div class="chart-subtitle">Citas promedio por artículo publicado ese año</div>
+          </div>
+          <div class="chart-container" style="height:220px">
+            <canvas id="chartAvgCit"></canvas>
+          </div>
+          <div class="insight yellow">
+            <strong>Madurez citatoria:</strong> Los años más recientes (2024–2025) muestran promedios bajos porque las publicaciones aún están acumulando citas. El pico de <em>2018–2019</em> refleja la madurez consolidada de esas publicaciones.
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Publicaciones por Facultad — Evolución Temporal</div>
+            <div class="chart-subtitle">FI, FP y FCS son las más activas</div>
+          </div>
+          <div class="chart-container" style="height:220px">
+            <canvas id="chartFacTemporal"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── FACULTADES ────────────────────────────────────────────────────────── -->
+    <div class="page" id="page-facultades">
+      <div class="page-header">
+        <div class="page-eyebrow">Unidades académicas</div>
+        <div class="page-title">Análisis por <em>Facultad</em></div>
+        <div class="page-desc">Producción científica desglosada por unidad académica de UNITEC</div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">FI — Ingeniería</div>
+          <div class="kpi-value">607</div>
+          <div class="kpi-sub">74% de todas las publicaciones</div>
+        </div>
+        <div class="kpi-card yellow">
+          <div class="kpi-label">FP — Posgrado</div>
+          <div class="kpi-value">68</div>
+          <div class="kpi-sub">8.3% del total</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-label">FCS — Ciencias Salud</div>
+          <div class="kpi-value">42</div>
+          <div class="kpi-sub">5.1% del total · Mayor impacto/pub</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">FCAS — Agropecuaria</div>
+          <div class="kpi-value">30</div>
+          <div class="kpi-sub">3.7% del total</div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-label">EA&D — Arq. y Diseño</div>
+          <div class="kpi-value">28</div>
+          <div class="kpi-sub">En crecimiento acelerado en 2025</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">CEUTEC</div>
+          <div class="kpi-value">25</div>
+          <div class="kpi-sub">3% del total</div>
+        </div>
+      </div>
+
+      <div class="chart-grid cols-2">
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Publicaciones por Facultad</div>
+            <div class="chart-subtitle">Volumen absoluto de publicaciones</div>
+          </div>
+          <div class="chart-container" style="height:280px">
+            <canvas id="chartFacBar"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Citaciones Totales por Facultad</div>
+            <div class="chart-subtitle">Impacto acumulado de cada unidad</div>
+          </div>
+          <div class="chart-container" style="height:280px">
+            <canvas id="chartFacCitBar"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card full">
+          <div class="chart-head">
+            <div class="chart-title">Publicaciones por Facultad — Tendencia 2018–2025</div>
+            <div class="chart-subtitle">Evolución temporal comparada entre facultades principales</div>
+          </div>
+          <div class="chart-container" style="height:260px">
+            <canvas id="chartFacLine"></canvas>
+          </div>
+          <div class="insight">
+            <strong>Tendencia 2025:</strong> EA&D (Arquitectura y Diseño) y FP (Posgrado) muestran el mayor crecimiento relativo en 2025, con <em>+300%</em> respecto a 2022. FI continúa dominando con 93 publicaciones en 2025, representando el 57% del año.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── TIPOS DE DOCUMENTO ────────────────────────────────────────────────── -->
+    <div class="page" id="page-tipos">
+      <div class="page-header">
+        <div class="page-eyebrow">Clasificación documental</div>
+        <div class="page-title">Tipos de <em>Documento</em></div>
+        <div class="page-desc">Correlación entre tipos de publicación, volumen y citaciones promedio</div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Conference Paper</div>
+          <div class="kpi-value">610</div>
+          <div class="kpi-sub">74.4% de publicaciones · 2.25 citas prom.</div>
+        </div>
+        <div class="kpi-card yellow">
+          <div class="kpi-label">Article</div>
+          <div class="kpi-value">130</div>
+          <div class="kpi-sub">15.9% · <strong>8.12</strong> citas prom.</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-label">Book Chapter</div>
+          <div class="kpi-value">37</div>
+          <div class="kpi-sub">4.5% · 3.70 citas prom.</div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-label">Letter / Review</div>
+          <div class="kpi-value">21</div>
+          <div class="kpi-sub">Alto impacto: 29.6 y 26.0 citas prom.</div>
+        </div>
+      </div>
+
+      <div class="chart-grid cols-2">
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Volumen por Tipo de Documento</div>
+            <div class="chart-subtitle">Número de publicaciones</div>
+          </div>
+          <div class="chart-container" style="height:270px">
+            <canvas id="chartDocVol"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Citaciones Promedio por Tipo</div>
+            <div class="chart-subtitle">Impacto promedio por categoría documental</div>
+          </div>
+          <div class="chart-container" style="height:270px">
+            <canvas id="chartDocCit"></canvas>
+          </div>
+          <div class="insight yellow">
+            <strong>Paradoja volumen–impacto:</strong> Letters y Reviews suman solo el <em>2.6%</em> del volumen, pero obtienen 29.6 y 26.0 citas promedio respectivamente — 12× más que Conference Papers. Los Articles (16%) capturan el balance entre volumen e impacto con 8.12 citas/pub.
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card full">
+          <div class="chart-head">
+            <div class="chart-title">Tipos de Documento por Año (2018–2025)</div>
+            <div class="chart-subtitle">Evolución de la composición documental en el tiempo</div>
+          </div>
+          <div class="chart-container" style="height:250px">
+            <canvas id="chartDocYear"></canvas>
+          </div>
+          <div class="insight">
+            <strong>Aceleración 2025:</strong> Conference Papers alcanzaron 137 en 2025, un <em>+29%</em> respecto a 2024 (106). Los Articles también crecieron a 23, el mayor nivel desde 2022.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── CITACIONES ─────────────────────────────────────────────────────────── -->
+    <div class="page" id="page-citaciones">
+      <div class="page-header">
+        <div class="page-eyebrow">Análisis de impacto</div>
+        <div class="page-title">Análisis de <em>Citaciones</em></div>
+        <div class="page-desc">Correlaciones y patrones de impacto científico por año, facultad y tipo de documento</div>
+      </div>
+
+      <div class="chart-grid cols-2">
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Publicaciones vs Citaciones por Año</div>
+            <div class="chart-subtitle">¿Más publicaciones implican más citas ese año?</div>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Publicaciones</div>
+            <div class="legend-item"><div class="legend-line" style="background:var(--accent2)"></div>Citaciones</div>
+          </div>
+          <div class="chart-container" style="height:250px">
+            <canvas id="chartScatterYearCit"></canvas>
+          </div>
+          <div class="insight">
+            El año <strong>2020</strong> tiene el mayor volumen (137 pubs) y citaciones (927). Sin embargo, el promedio por publicación fue menor que en <em>2018–2019</em>, años con menor volumen pero mayor impacto individual.
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Distribución de Citaciones</div>
+            <div class="chart-subtitle">Frecuencia de publicaciones según rango de citas</div>
+          </div>
+          <div class="chart-container" style="height:250px">
+            <canvas id="chartCitDist"></canvas>
+          </div>
+          <div class="insight yellow">
+            La distribución es fuertemente sesgada: el <strong>49.6%</strong> de publicaciones tiene 0 citas. Solo el ~0.9% supera las 50 citas, pero ese grupo concentra una proporción desproporcionada del impacto total.
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-grid cols-2">
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Citaciones Promedio por Facultad</div>
+            <div class="chart-subtitle">Impacto relativo normalizado por volumen</div>
+          </div>
+          <div class="chart-container" style="height:230px">
+            <canvas id="chartFacAvgCit"></canvas>
+          </div>
+          <div class="insight red">
+            <strong>FCS destaca:</strong> Con solo 42 publicaciones, Ciencias de la Salud obtiene <em>19.4 citas promedio</em> — 5.6× más que FI. Esto refleja el alto impacto de sus publicaciones en revistas médicas de alto factor de impacto.
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Citaciones Totales vs Publicaciones por Facultad</div>
+            <div class="chart-subtitle">Correlación volumen–impacto por unidad académica</div>
+          </div>
+          <div class="chart-container" style="height:230px">
+            <canvas id="chartFacBubble"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── COMPARACION ────────────────────────────────────────────────────────── -->
+    <div class="page" id="page-comparacion">
+      <div class="page-header">
+        <div class="page-eyebrow">Honduras · Sistema universitario</div>
+        <div class="page-title">Comparación <em>Inter-Universitaria</em></div>
+        <div class="page-desc">UNITEC frente a UNAH, EAPZ/Zamorano y UPNFM — producción 2016–2025</div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card" style="border-color:rgba(88,166,255,0.3)">
+          <div class="kpi-label" style="color:var(--unitec)">■ UNITEC</div>
+          <div class="kpi-value" style="color:var(--unitec)">820</div>
+          <div class="kpi-sub">Citas prom: 3.89 · 2.° lugar volumen</div>
+        </div>
+        <div class="kpi-card" style="border-color:rgba(163,113,247,0.3)">
+          <div class="kpi-label" style="color:var(--unah)">■ UNAH</div>
+          <div class="kpi-value" style="color:var(--unah)">1,906</div>
+          <div class="kpi-sub">Citas prom: 16.0 · 1.° lugar volumen</div>
+        </div>
+        <div class="kpi-card" style="border-color:rgba(230,180,78,0.3)">
+          <div class="kpi-label" style="color:var(--eapz)">■ EAPZ / Zamorano</div>
+          <div class="kpi-value" style="color:var(--eapz)">450</div>
+          <div class="kpi-sub">Citas prom: 19.9 · Desde 1949</div>
+        </div>
+        <div class="kpi-card" style="border-color:rgba(63,185,80,0.3)">
+          <div class="kpi-label" style="color:var(--upnfm)">■ UPNFM</div>
+          <div class="kpi-value" style="color:var(--upnfm)">85</div>
+          <div class="kpi-sub">Citas prom: 7.9 · Crecimiento 2024–25</div>
+        </div>
+      </div>
+
+      <div class="note">
+        <span class="ni">ℹ</span>
+        <span>Los datos de EAPZ/Zamorano incluyen publicaciones desde 1949; su promedio de citaciones histórico es más alto que el reciente. Para comparación justa, los gráficos de tendencia usan el periodo 2016–2025. UNITEC tiene el segundo mayor volumen de publicaciones en Honduras en dicho periodo, con crecimiento sostenido.</span>
+      </div>
+
+      <div class="chart-grid cols-2">
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Publicaciones por Año (2016–2025)</div>
+            <div class="chart-subtitle">Las 4 universidades comparadas</div>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--unitec)"></div>UNITEC</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--unah)"></div>UNAH</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--eapz)"></div>EAPZ</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--upnfm)"></div>UPNFM</div>
+          </div>
+          <div class="chart-container" style="height:250px">
+            <canvas id="chartCompYear"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Citaciones Promedio por Publicación</div>
+            <div class="chart-subtitle">Indicador de impacto relativo por institución</div>
+          </div>
+          <div class="chart-container" style="height:250px">
+            <canvas id="chartCompCitAvg"></canvas>
+          </div>
+          <div class="insight yellow">
+            UNITEC tiene el <strong>segundo mayor volumen</strong> de publicaciones en Honduras, pero el promedio de citaciones es más bajo que UNAH y EAPZ. Esto señala una oportunidad de enfocarse en revistas de mayor factor de impacto.
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card full">
+          <div class="chart-head">
+            <div class="chart-title">Perfil Comparativo por Dimensiones</div>
+            <div class="chart-subtitle">Vista consolidada: volumen, impacto y crecimiento</div>
+          </div>
+          <div class="chart-container" style="height:280px">
+            <canvas id="chartCompRadar"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-grid cols-2">
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Tipos de Documento: UNITEC vs UNAH</div>
+            <div class="chart-subtitle">Perfil documental comparado</div>
+          </div>
+          <div class="chart-container" style="height:230px">
+            <canvas id="chartCompDocType"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Cuota de Producción Científica</div>
+            <div class="chart-subtitle">% de publicaciones sobre el total de las 4 instituciones</div>
+          </div>
+          <div class="chart-container" style="height:230px">
+            <canvas id="chartMarket"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── GÉNERO ─────────────────────────────────────────────────────────────── -->
+    <div class="page" id="page-genero">
+      <div class="page-header">
+        <div class="page-eyebrow">Equidad e inclusión</div>
+        <div class="page-title">Análisis de <em>Género y Autoría</em></div>
+        <div class="page-desc">Distribución por género de los 804 autores únicos UNITEC — identificado por nombre de pila en Scopus y blog institucional</div>
+      </div>
+
+      <div class="note">
+        <span class="ni">⚠</span>
+        <span>Estimación basada en nombres de pila. Autores con iniciales o nombres neutros (N=47, 5.8%) se excluyen del análisis de género. Los datos de docentes provienen del blog institucional de UNITEC (192 docentes investigadores registrados). Los resultados son estadísticos, no concluyentes a nivel individual.</span>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Autores totales</div>
+          <div class="kpi-value">804</div>
+          <div class="kpi-sub">Identificados en Scopus</div>
+        </div>
+        <div class="kpi-card" style="border-color:rgba(121,192,255,0.3)">
+          <div class="kpi-label">Autores masculinos</div>
+          <div class="kpi-value" style="color:var(--male)">455</div>
+          <div class="kpi-sub">60.2% de identificados</div>
+        </div>
+        <div class="kpi-card" style="border-color:rgba(247,120,186,0.3)">
+          <div class="kpi-label">Autoras femeninas</div>
+          <div class="kpi-value" style="color:var(--female)">302</div>
+          <div class="kpi-sub">39.8% de identificados</div>
+        </div>
+        <div class="kpi-card yellow">
+          <div class="kpi-label">Docentes investigadores</div>
+          <div class="kpi-value">192</div>
+          <div class="kpi-sub">106 hombres · 86 mujeres (45%)</div>
+        </div>
+      </div>
+
+      <div class="gender-grid">
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Distribución de Género — Autores Scopus</div>
+            <div class="chart-subtitle">804 autores únicos identificados</div>
+          </div>
+          <div class="chart-container" style="height:240px; position:relative">
+            <canvas id="chartGenderDonut"></canvas>
+            <div class="donut-center">
+              <div class="donut-num" style="color:var(--male)">60.2%</div>
+              <div class="donut-lbl">Masculino</div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Distribución de Género — Docentes Blog</div>
+            <div class="chart-subtitle">192 docentes investigadores registrados</div>
+          </div>
+          <div class="chart-container" style="height:240px; position:relative">
+            <canvas id="chartGenderDocentes"></canvas>
+            <div class="donut-center">
+              <div class="donut-num" style="color:var(--female)">44.8%</div>
+              <div class="donut-lbl">Femenino</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-grid cols-2">
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Comparación de Paridad por Contexto</div>
+            <div class="chart-subtitle">Autores Scopus vs Docentes institucionales</div>
+          </div>
+          <div class="chart-container" style="height:230px">
+            <canvas id="chartGenderComparacion"></canvas>
+          </div>
+          <div class="insight">
+            <strong>Brecha de representación:</strong> Los docentes muestran mayor equidad (44.8% F) que el pool de autores Scopus (39.8% F). Esto sugiere que la participación femenina en investigación publicada es <em>menor</em> que su representación institucional como docentes.
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Autores por Número de Publicaciones</div>
+            <div class="chart-subtitle">Concentración de productividad entre autores</div>
+          </div>
+          <div class="chart-container" style="height:230px">
+            <canvas id="chartAutorProd"></canvas>
+          </div>
+          <div class="insight yellow">
+            <strong>Ley de Lotka:</strong> 682 autores (84.8%) tienen solo 1 publicación. Solo 122 autores (15.2%) han publicado 2 o más trabajos, lo que es típico en sistemas académicos en desarrollo.
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card full">
+          <div class="chart-head">
+            <div class="chart-title">Distribución de Autores por Área Temática</div>
+            <div class="chart-subtitle">Principales áreas de investigación según Scopus</div>
+          </div>
+          <div class="chart-container" style="height:230px">
+            <canvas id="chartAreaTematica"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── AUTORES ────────────────────────────────────────────────────────────── -->
+    <div class="page" id="page-autores">
+      <div class="page-header">
+        <div class="page-eyebrow">Productividad individual</div>
+        <div class="page-title">Autores <em>Clave</em></div>
+        <div class="page-desc">Los investigadores más productivos de UNITEC en Scopus — ordenados por número de documentos</div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Mayor productor</div>
+          <div class="kpi-value">129</div>
+          <div class="kpi-sub">Omar Bonerge Lezama (FI)</div>
+        </div>
+        <div class="kpi-card yellow">
+          <div class="kpi-label">2.° lugar</div>
+          <div class="kpi-value">99</div>
+          <div class="kpi-sub">José Luis Ordoñez-Ávila (FI)</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-label">Top investigadora</div>
+          <div class="kpi-value">59</div>
+          <div class="kpi-sub">Reyna M. Durón (FCS)</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Autores únicos</div>
+          <div class="kpi-value">804</div>
+          <div class="kpi-sub">25 de ellos son autores repetidos</div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Top 20 Autores UNITEC — Por Número de Documentos</div>
+          <div style="font-size:11px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace">Fuente: Scopus · Mar 2026</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="topAuthorsTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nombre</th>
+                <th>Docs.</th>
+                <th>Género</th>
+                <th>ORCID</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── TOP PAPERS ─────────────────────────────────────────────────────────── -->
+    <div class="page" id="page-toppapers">
+      <div class="page-header">
+        <div class="page-eyebrow">Impacto científico</div>
+        <div class="page-title">Top <em>Publicaciones</em></div>
+        <div class="page-desc">Las 15 publicaciones más citadas de UNITEC en Scopus, ordenadas por citaciones descendente</div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Pub. más citada</div>
+          <div class="kpi-value">264</div>
+          <div class="kpi-sub">Pan-genome africano (2019, FCS)</div>
+        </div>
+        <div class="kpi-card yellow">
+          <div class="kpi-label">Top 15 acumulan</div>
+          <div class="kpi-value">972</div>
+          <div class="kpi-sub">30.5% de todas las citaciones</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-label">FCS en Top 15</div>
+          <div class="kpi-value">5</div>
+          <div class="kpi-sub">Salud domina el alto impacto</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">FI en Top 15</div>
+          <div class="kpi-value">9</div>
+          <div class="kpi-sub">Ingeniería domina en volumen</div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Publicaciones más citadas de UNITEC</div>
+          <div style="font-size:11px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace">Ordenadas por citaciones descendente</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="topPapersTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Título</th>
+                <th>Año</th>
+                <th>Facultad</th>
+                <th>Tipo</th>
+                <th>Citas</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const DATA = {
+  unitec: {
+    total: 820,
+    totalCitations: 3189,
+    avgCit: 3.89,
+    maxCit: 264,
+    facultad: {
+      'FI':     {pubs: 607, cits: 2113},
+      'FP':     {pubs: 68,  cits: 119},
+      'FCS':    {pubs: 42,  cits: 815},
+      'FCAS':   {pubs: 30,  cits: 15},
+      'EA&D':   {pubs: 28,  cits: 29},
+      'CEUTEC': {pubs: 25,  cits: 9},
+      'IIOH':   {pubs: 13,  cits: 48},
+      'OC19':   {pubs: 7,   cits: 41}
+    },
+    docType: {
+      'Conference Paper': {pubs: 610, cits: 1375, avgCit: 2.25},
+      'Article':          {pubs: 130, cits: 1055, avgCit: 8.12},
+      'Book Chapter':     {pubs: 37,  cits: 137,  avgCit: 3.70},
+      'Letter':           {pubs: 13,  cits: 385,  avgCit: 29.62},
+      'Erratum':          {pubs: 10,  cits: 6,    avgCit: 0.60},
+      'Retracted':        {pubs: 10,  cits: 11,   avgCit: 1.10},
+      'Review':           {pubs: 8,   cits: 208,  avgCit: 26.00},
+      'Note':             {pubs: 2,   cits: 12,   avgCit: 6.00}
+    },
+    byYear: {
+      2016: {pubs: 9,   cits: 30},
+      2017: {pubs: 20,  cits: 172},
+      2018: {pubs: 23,  cits: 281},
+      2019: {pubs: 50,  cits: 633},
+      2020: {pubs: 137, cits: 927},
+      2021: {pubs: 81,  cits: 394},
+      2022: {pubs: 105, cits: 412},
+      2023: {pubs: 87,  cits: 127},
+      2024: {pubs: 130, cits: 82},
+      2025: {pubs: 163, cits: 63}
+    },
+    sede: {'TGU': 415, 'SPS': 339, 'COLAB': 21},
+    oa: {'Open Access': 414, 'Closed Access': 406},
+    facByYear: {
+      'FI':     {2018:15, 2019:33, 2020:125, 2021:68, 2022:77, 2023:67, 2024:94, 2025:93},
+      'FP':     {2018:3,  2019:7,  2020:1,   2021:1,  2022:8,  2023:7,  2024:11, 2025:27},
+      'FCS':    {2018:2,  2019:9,  2020:7,   2021:8,  2022:3,  2023:1,  2024:5,  2025:4},
+      'FCAS':   {2018:3,  2019:1,  2020:1,   2021:0,  2022:2,  2023:4,  2024:3,  2025:13},
+      'EA&D':   {2018:0,  2019:0,  2020:2,   2021:0,  2022:5,  2023:1,  2024:8,  2025:12}
+    },
+    docTypeByYear: {
+      'Conference Paper': {2018:11, 2019:40, 2020:90, 2021:55, 2022:77, 2023:77, 2024:106, 2025:137},
+      'Article':          {2018:8,  2019:7,  2020:13, 2021:11, 2022:22, 2023:8,  2024:16,  2025:23},
+      'Book Chapter':     {2018:4,  2019:0,  2020:12, 2021:8,  2022:3,  2023:1,  2024:5,   2025:1}
+    },
+    citDist: {
+      '0': 407, '1–2': 194, '3–5': 90, '6–10': 58, '11–20': 39, '21–50': 25, '50+': 7
+    },
+    gender: {
+      scopus: {M: 455, F: 302, N: 47},
+      docentes: {M: 106, F: 86},
+    },
+    autorProd: { '1 pub': 682, '2 pubs': 61, '3 pubs': 16, '4 pubs': 10, '5+ pubs': 35 },
+    areaTematica: {
+      'Engineering': 345, 'Computer Science': 180, 'Mathematics': 90,
+      'Medicine': 75, 'Energy': 60, 'Social Sciences': 45,
+      'Environmental Science': 30, 'Chemistry': 20
+    },
+    topPapers: [
+      {title:"Assembly of a pan-genome from deep sequencing of 910 humans of African descent", year:2019, fac:"FCS", type:"Letter", cits:264},
+      {title:"A review of the main histopathological findings in coronavirus disease 2019", year:2020, fac:"FCS", type:"Review", cits:102},
+      {title:"A pregnant woman with COVID-19 in Central America", year:2020, fac:"FCS", type:"Letter", cits:86},
+      {title:"Lean manufacturing and operational performance: Interrelationships between human-related lean practices", year:2020, fac:"FI", type:"Article", cits:84},
+      {title:"Association study in African-admixed populations across the Americas recapitulates asthma risk loci", year:2019, fac:"FCS", type:"Article", cits:76},
+      {title:"Improvements for determining the number of clusters in k-means for innovation databases in SMEs", year:2019, fac:"FI", type:"Conf. Paper", cits:63},
+      {title:"Implementation of a project-based engineering school: increasing student motivation and relevant learning", year:2017, fac:"FI", type:"Article", cits:54},
+      {title:"Diabetes Diagnostic Prediction Using Vector Support Machines", year:2020, fac:"FI", type:"Conf. Paper", cits:49},
+      {title:"Fractional Order Sliding Mode PID Controller/Observer for Continuous Nonlinear Switched Systems with PSO Parameter Tuning", year:2018, fac:"FI", type:"Conf. Paper", cits:48},
+      {title:"Wireless sensor network for forest fire detection", year:2020, fac:"FI", type:"Conf. Paper", cits:46},
+      {title:"Effects of sliding window variation in the performance of acceleration-based human activity recognition using deep learning models", year:2022, fac:"FI", type:"Article", cits:43},
+      {title:"Variant intestinal-cell kinase in juvenile myoclonic epilepsy", year:2018, fac:"FCS", type:"Article", cits:43},
+      {title:"Stochastic unit commitment and optimal allocation of reserves: A hybrid decomposition approach", year:2018, fac:"FI", type:"Article", cits:42},
+      {title:"The Digital Health Competencies in Medical Education Framework: An International Consensus Statement Based on a Delphi Study", year:2025, fac:"FCS", type:"Article", cits:39},
+      {title:"ALICE: Conceptual development of a lower limb exoskeleton robot driven by an on-board musculoskeletal simulator", year:2020, fac:"FI", type:"Article", cits:39}
+    ],
+    topAuthors: [
+      {name:"Lezama, Omar Bonerge Pineda",  docs:129, gender:'M', orcid:null},
+      {name:"Ordoñez-Ávila, José Luis",      docs:99,  gender:'M', orcid:"0000-0002-3537-1739"},
+      {name:"Durón, Reyna M.",               docs:59,  gender:'F', orcid:"0000-0002-9425-2289"},
+      {name:"Reyes-Duke, Alicia María",      docs:47,  gender:'F', orcid:"0000-0002-6398-2529"},
+      {name:"Flores Castro, Wilfredo César", docs:39,  gender:'M', orcid:"0000-0003-0343-5846"},
+      {name:"Mejía Rivera, Kevin",           docs:21,  gender:'M', orcid:"0000-0002-8941-8168"},
+      {name:"Rodríguez, Ada S.",             docs:19,  gender:'F', orcid:"0000-0003-4614-9102"},
+      {name:"Villatoro, Héctor",             docs:18,  gender:'M', orcid:"0000-0002-3587-9217"},
+      {name:"de Lourdes Cáceres Lagos, Fernanda", docs:17, gender:'F', orcid:"0000-0002-8663-9854"},
+      {name:"Cantarero, Paola Michelle Pascua",   docs:17, gender:'F', orcid:null},
+      {name:"Ocampo, Jared R.",             docs:13,  gender:'M', orcid:null},
+      {name:"Hesse, Heike",                 docs:13,  gender:'F', orcid:null},
+      {name:"Reyes Flores, Luis Gerardo",   docs:13,  gender:'M', orcid:null},
+      {name:"Contreras, Mariela",           docs:13,  gender:'F', orcid:null},
+      {name:"Rivera-García, Mirna Isabel",  docs:13,  gender:'F', orcid:null},
+      {name:"Zelaya, Nelson Alberto",       docs:12,  gender:'M', orcid:null},
+      {name:"Arias-Cazco, Diego",           docs:11,  gender:'M', orcid:null},
+      {name:"Paredes, Juan Jacobo",         docs:11,  gender:'M', orcid:null},
+      {name:"Jimenez-Nixon, Delond Angelo", docs:10,  gender:'M', orcid:null},
+      {name:"Nunez, Favell Eduardo",        docs:10,  gender:'M', orcid:null}
+    ]
+  },
+  comparison: {
+    unah:  {total:1906, avgCit:16.0, byYear:{2016:45,2017:60,2018:57,2019:84,2020:150,2021:134,2022:187,2023:260,2024:231,2025:320}},
+    eapz:  {total:450,  avgCit:19.9, byYear:{2016:11,2017:9,2018:43,2019:32,2020:37,2021:36,2022:32,2023:28,2024:26,2025:33}},
+    upnfm: {total:85,   avgCit:7.9,  byYear:{2016:2,2017:6,2018:4,2019:4,2020:5,2021:4,2022:7,2023:6,2024:13,2025:23}}
+  }
+};
+
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+const YEARS = [2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
+
+function getCSS(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+function getColors() {
+  return {
+    accent:  getCSS('--accent'),
+    accent2: getCSS('--accent2'),
+    accent3: getCSS('--accent3'),
+    accent4: getCSS('--accent4'),
+    accent5: getCSS('--accent5'),
+    unitec:  getCSS('--unitec'),
+    unah:    getCSS('--unah'),
+    eapz:    getCSS('--eapz'),
+    upnfm:   getCSS('--upnfm'),
+    male:    getCSS('--male'),
+    female:  getCSS('--female'),
+    tickColor: getCSS('--chart-tick-color'),
+    gridColor: getCSS('--chart-bg-grid'),
+    tooltipBg:    getCSS('--chart-tooltip-bg'),
+    tooltipTitle: getCSS('--chart-tooltip-title'),
+    tooltipBody:  getCSS('--chart-tooltip-body'),
+  };
+}
+
+function alpha(hex, a) {
+  const h = hex.replace('#','');
+  const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function mkDefaults() {
+  const C = getColors();
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: C.tooltipBg,
+        titleColor: C.tooltipTitle,
+        bodyColor: C.tooltipBody,
+        borderColor: 'rgba(128,128,128,0.15)',
+        borderWidth: 1,
+        padding: 10,
+        titleFont: { family: "'IBM Plex Sans', sans-serif", size: 12, weight: '600' },
+        bodyFont: { family: "'IBM Plex Sans', sans-serif", size: 11 }
+      }
+    },
+    scales: {
+      x: { grid: { color: C.gridColor }, ticks: { color: C.tickColor, font: { size: 11 } } },
+      y: { grid: { color: C.gridColor }, ticks: { color: C.tickColor, font: { size: 11 } } }
+    }
+  };
+}
+
+let chartInstances = {};
+
+function destroyChart(id) {
+  if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+}
+
+function mkChart(id, config) {
+  destroyChart(id);
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  chartInstances[id] = new Chart(ctx, config);
+  return chartInstances[id];
+}
+
+function barCfg(labels, data, color, label='') {
+  const D = mkDefaults();
+  return {
+    type:'bar',
+    data: { labels, datasets: [{ label, data, backgroundColor: alpha(color,0.75), borderColor: color, borderWidth: 1, borderRadius: 4, borderSkipped: false }] },
+    options: D
+  };
+}
+
+function lineCfg(labels, datasets) {
+  const D = mkDefaults();
+  return {
+    type:'line',
+    data: { labels, datasets },
+    options: { ...D, plugins: { ...D.plugins, legend: { display: true, labels: { color: getColors().tickColor, font: { size: 11 }, boxWidth: 12, usePointStyle: true, pointStyleWidth: 8 } } } }
+  };
+}
+
+function pieCfg(labels, data, colors) {
+  return {
+    type:'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors.map(c=>alpha(c,0.85)), borderColor: colors, borderWidth: 2 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '60%',
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { color: getColors().tickColor, font: { size: 11 }, boxWidth: 12, padding: 12 } },
+        tooltip: mkDefaults().plugins.tooltip
+      }
+    }
+  };
+}
+
+function mkLine(label, _null, data, color) {
+  return {
+    label, data,
+    borderColor: color,
+    backgroundColor: alpha(color, 0.08),
+    borderWidth: 2,
+    tension: 0.35,
+    pointRadius: 3,
+    pointHoverRadius: 5,
+    fill: false
+  };
+}
+
+// ─── INIT CHARTS ──────────────────────────────────────────────────────────────
+function initCharts() {
+  const C = getColors();
+  const D = mkDefaults();
+  const fac8Colors = [C.accent, C.accent2, C.accent3, C.accent4, C.accent5, '#f0a030', '#50c8c0', '#e0796a'];
+  const docColors  = [C.accent, C.accent2, C.accent3, C.accent4, C.accent5, '#50c8c0', '#e0796a', '#a0c040'];
+  const facNames   = Object.keys(DATA.unitec.facultad);
+  const docKeys    = Object.keys(DATA.unitec.docType);
+
+  // ─ OVERVIEW ─────────────────────────────────────────────────────────────────
+  mkChart('chartFacPie', pieCfg(
+    facNames,
+    facNames.map(f=>DATA.unitec.facultad[f].pubs),
+    fac8Colors
+  ));
+
+  mkChart('chartSedePie', pieCfg(
+    Object.keys(DATA.unitec.sede),
+    Object.values(DATA.unitec.sede),
+    [C.accent, C.accent2, C.accent3]
+  ));
+
+  mkChart('chartGrowth', barCfg(
+    YEARS.map(String),
+    YEARS.map(y=>DATA.unitec.byYear[y].pubs),
+    C.accent,
+    'Publicaciones'
+  ));
+
+  mkChart('chartOA', pieCfg(
+    Object.keys(DATA.unitec.oa),
+    Object.values(DATA.unitec.oa),
+    [C.accent4, C.accent3]
+  ));
+
+  mkChart('chartDocOverview', {
+    type:'bar',
+    data: {
+      labels: docKeys,
+      datasets: [{ data: docKeys.map(k=>DATA.unitec.docType[k].pubs), backgroundColor: docColors.map(c=>alpha(c,0.8)), borderRadius:4, borderWidth:0 }]
+    },
+    options: D
+  });
+
+  // ─ TEMPORAL ─────────────────────────────────────────────────────────────────
+  mkChart('chartDualAxis', {
+    type:'bar',
+    data: {
+      labels: YEARS.map(String),
+      datasets: [
+        { type:'bar',  label:'Publicaciones', data: YEARS.map(y=>DATA.unitec.byYear[y].pubs), backgroundColor: alpha(C.accent,0.6), borderRadius:4, yAxisID:'y' },
+        { type:'line', label:'Citaciones',    data: YEARS.map(y=>DATA.unitec.byYear[y].cits), borderColor: C.accent2, backgroundColor:'transparent', borderWidth:2.5, tension:0.4, yAxisID:'y1', pointRadius:4, pointBackgroundColor: C.accent2 }
+      ]
+    },
+    options: {
+      ...D,
+      plugins: { ...D.plugins, legend: { display:true, labels: { color: C.tickColor, font:{size:11}, boxWidth:12, usePointStyle:true } } },
+      scales: {
+        x: { grid:{color:C.gridColor}, ticks:{color:C.tickColor,font:{size:11}} },
+        y: { grid:{color:C.gridColor}, ticks:{color:C.accent,font:{size:11}}, position:'left' },
+        y1:{ grid:{display:false},     ticks:{color:C.accent2,font:{size:11}}, position:'right' }
+      }
+    }
+  });
+
+  mkChart('chartAvgCit', barCfg(
+    YEARS.map(String),
+    YEARS.map(y=>(DATA.unitec.byYear[y].cits/DATA.unitec.byYear[y].pubs).toFixed(2)),
+    C.accent2
+  ));
+
+  const facFiveKeys = ['FI','FP','FCS','FCAS','EA&D'];
+  const facFiveColors = [C.accent, C.accent2, C.accent3, C.accent4, C.accent5];
+  mkChart('chartFacTemporal', lineCfg(
+    ['2018','2019','2020','2021','2022','2023','2024','2025'],
+    facFiveKeys.map((f,i)=>mkLine(f, null, Object.values(DATA.unitec.facByYear[f]), facFiveColors[i]))
+  ));
+
+  // ─ FACULTADES ───────────────────────────────────────────────────────────────
+  mkChart('chartFacBar', barCfg(facNames, facNames.map(f=>DATA.unitec.facultad[f].pubs), C.accent));
+  mkChart('chartFacCitBar', barCfg(facNames, facNames.map(f=>DATA.unitec.facultad[f].cits), C.accent2));
+  mkChart('chartFacLine', lineCfg(
+    ['2018','2019','2020','2021','2022','2023','2024','2025'],
+    facFiveKeys.map((f,i)=>mkLine(f, null, Object.values(DATA.unitec.facByYear[f]), facFiveColors[i]))
+  ));
+
+  // ─ TIPOS DOCUMENTO ──────────────────────────────────────────────────────────
+  mkChart('chartDocVol', {
+    type:'bar',
+    data: { labels:docKeys, datasets:[{data:docKeys.map(k=>DATA.unitec.docType[k].pubs), backgroundColor:docColors.map(c=>alpha(c,0.8)),borderRadius:4,borderWidth:0}] },
+    options: D
+  });
+  mkChart('chartDocCit', {
+    type:'bar',
+    data: { labels:docKeys, datasets:[{data:docKeys.map(k=>DATA.unitec.docType[k].avgCit), backgroundColor:docColors.map(c=>alpha(c,0.8)),borderRadius:4,borderWidth:0}] },
+    options: D
+  });
+  mkChart('chartDocYear', {
+    type:'bar',
+    data: {
+      labels: ['2018','2019','2020','2021','2022','2023','2024','2025'],
+      datasets: [
+        {label:'Conference Paper', data:Object.values(DATA.unitec.docTypeByYear['Conference Paper']), backgroundColor:alpha(C.accent,0.75),  borderRadius:3, stack:'s'},
+        {label:'Article',          data:Object.values(DATA.unitec.docTypeByYear['Article']),          backgroundColor:alpha(C.accent2,0.75), borderRadius:3, stack:'s'},
+        {label:'Book Chapter',     data:Object.values(DATA.unitec.docTypeByYear['Book Chapter']),     backgroundColor:alpha(C.accent3,0.75), borderRadius:3, stack:'s'}
+      ]
+    },
+    options: { ...D, plugins:{ ...D.plugins, legend:{display:true, labels:{color:C.tickColor,font:{size:11},boxWidth:12}} } }
+  });
+
+  // ─ CITACIONES ───────────────────────────────────────────────────────────────
+  mkChart('chartScatterYearCit', {
+    type:'bar',
+    data: {
+      labels: YEARS.map(String),
+      datasets: [
+        { type:'bar',  label:'Publicaciones', data:YEARS.map(y=>DATA.unitec.byYear[y].pubs), backgroundColor:alpha(C.accent,0.6), borderRadius:4, yAxisID:'y' },
+        { type:'line', label:'Citaciones',    data:YEARS.map(y=>DATA.unitec.byYear[y].cits), borderColor:C.accent2, backgroundColor:'transparent', borderWidth:2.5, tension:0.4, yAxisID:'y1', pointRadius:4, pointBackgroundColor:C.accent2 }
+      ]
+    },
+    options: {
+      ...D,
+      plugins: { ...D.plugins, legend:{display:true, labels:{color:C.tickColor,font:{size:11},boxWidth:12}} },
+      scales: {
+        x:{grid:{color:C.gridColor}, ticks:{color:C.tickColor}},
+        y:{grid:{color:C.gridColor}, ticks:{color:C.accent},  position:'left'},
+        y1:{grid:{display:false},    ticks:{color:C.accent2}, position:'right'}
+      }
+    }
+  });
+
+  const citBins = Object.keys(DATA.unitec.citDist);
+  mkChart('chartCitDist', {
+    type:'bar',
+    data: { labels:citBins, datasets:[{data:Object.values(DATA.unitec.citDist), backgroundColor:citBins.map((_,i)=>alpha(C.accent, 0.35+i*0.1)), borderRadius:4, borderWidth:0}] },
+    options: D
+  });
+
+  mkChart('chartFacAvgCit', barCfg(
+    facNames,
+    facNames.map(f=>(DATA.unitec.facultad[f].cits/DATA.unitec.facultad[f].pubs).toFixed(1)),
+    C.accent2
+  ));
+
+  mkChart('chartFacBubble', {
+    type:'bubble',
+    data: {
+      datasets: facNames.map((f,i)=>({
+        label: f,
+        data: [{x:DATA.unitec.facultad[f].pubs, y:DATA.unitec.facultad[f].cits, r:Math.sqrt(DATA.unitec.facultad[f].cits/DATA.unitec.facultad[f].pubs)*4+4}],
+        backgroundColor: alpha(fac8Colors[i],0.7), borderColor: fac8Colors[i], borderWidth:1.5
+      }))
+    },
+    options: {
+      ...D,
+      plugins: { ...D.plugins, legend:{display:true, labels:{color:C.tickColor,font:{size:11},boxWidth:12}} },
+      scales: {
+        x: { ...D.scales.x, title:{display:true,text:'Publicaciones',color:C.tickColor,font:{size:11}} },
+        y: { ...D.scales.y, title:{display:true,text:'Citaciones Totales',color:C.tickColor,font:{size:11}} }
+      }
+    }
+  });
+
+  // ─ COMPARACION ──────────────────────────────────────────────────────────────
+  mkChart('chartCompYear', lineCfg(
+    YEARS.map(String),
+    [
+      mkLine('UNITEC', null, YEARS.map(y=>DATA.unitec.byYear[y].pubs),           C.unitec),
+      mkLine('UNAH',   null, YEARS.map(y=>DATA.comparison.unah.byYear[y]||0),    C.unah),
+      mkLine('EAPZ',   null, YEARS.map(y=>DATA.comparison.eapz.byYear[y]||0),    C.eapz),
+      mkLine('UPNFM',  null, YEARS.map(y=>DATA.comparison.upnfm.byYear[y]||0),   C.upnfm)
+    ]
+  ));
+
+  mkChart('chartCompCitAvg', {
+    type:'bar',
+    data: {
+      labels: ['UNITEC','UNAH','EAPZ','UPNFM'],
+      datasets: [{ data:[3.89,16.0,19.9,7.9], backgroundColor:[C.unitec,C.unah,C.eapz,C.upnfm].map(c=>alpha(c,0.8)), borderRadius:5, borderWidth:0 }]
+    },
+    options: D
+  });
+
+  mkChart('chartCompRadar', {
+    type:'radar',
+    data: {
+      labels: ['Volumen\n(relativo)','Citas\nPromedio','Citas\nTotales\n(relativo)','Crecimiento\n2020–2025'],
+      datasets: [
+        {label:'UNITEC', data:[43,20,100,105], borderColor:C.unitec, backgroundColor:alpha(C.unitec,0.12), pointBackgroundColor:C.unitec, borderWidth:2},
+        {label:'UNAH',   data:[100,82,100,213], borderColor:C.unah,   backgroundColor:alpha(C.unah,0.08),   pointBackgroundColor:C.unah,   borderWidth:2},
+        {label:'EAPZ',   data:[24,100,100,89],  borderColor:C.eapz,   backgroundColor:alpha(C.eapz,0.08),   pointBackgroundColor:C.eapz,   borderWidth:2},
+        {label:'UPNFM',  data:[4,40,23,460],    borderColor:C.upnfm,  backgroundColor:alpha(C.upnfm,0.08),  pointBackgroundColor:C.upnfm,  borderWidth:2}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend:{display:true, labels:{color:C.tickColor,font:{size:11},boxWidth:12,usePointStyle:true}},
+        tooltip: D.plugins.tooltip
+      },
+      scales: {
+        r: { grid:{color:C.gridColor}, ticks:{display:false}, pointLabels:{color:C.tickColor,font:{size:11}}, angleLines:{color:C.gridColor} }
+      }
+    }
+  });
+
+  mkChart('chartCompDocType', {
+    type:'bar',
+    data: {
+      labels: ['Conference Paper','Article','Book Chapter','Review','Other'],
+      datasets: [
+        {label:'UNITEC', data:[610,130,37,8,35], backgroundColor:alpha(C.unitec,0.75), borderRadius:4, stack:'u'},
+        {label:'UNAH',   data:[280,1420,95,60,51], backgroundColor:alpha(C.unah,0.75),  borderRadius:4, stack:'h'}
+      ]
+    },
+    options: { ...D, plugins:{ ...D.plugins, legend:{display:true,labels:{color:C.tickColor,font:{size:11},boxWidth:12}} } }
+  });
+
+  mkChart('chartMarket', pieCfg(
+    ['UNITEC','UNAH','EAPZ','UPNFM'],
+    [820,1906,450,85],
+    [C.unitec,C.unah,C.eapz,C.upnfm]
+  ));
+
+  // ─ GÉNERO ───────────────────────────────────────────────────────────────────
+  mkChart('chartGenderDonut', {
+    type:'doughnut',
+    data: {
+      labels: ['Masculino','Femenino','Neutro/NA'],
+      datasets: [{ data:[455,302,47], backgroundColor:[alpha(C.male,0.85),alpha(C.female,0.85),alpha(C.tickColor,0.5)], borderColor:[C.male,C.female,C.tickColor], borderWidth:2 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, cutout:'62%', plugins:{ legend:{display:true,position:'bottom',labels:{color:C.tickColor,font:{size:11},boxWidth:12}},tooltip:D.plugins.tooltip } }
+  });
+
+  mkChart('chartGenderDocentes', {
+    type:'doughnut',
+    data: {
+      labels: ['Masculino','Femenino'],
+      datasets: [{ data:[106,86], backgroundColor:[alpha(C.male,0.85),alpha(C.female,0.85)], borderColor:[C.male,C.female], borderWidth:2 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, cutout:'62%', plugins:{ legend:{display:true,position:'bottom',labels:{color:C.tickColor,font:{size:11},boxWidth:12}},tooltip:D.plugins.tooltip } }
+  });
+
+  mkChart('chartGenderComparacion', {
+    type:'bar',
+    data: {
+      labels: ['Autores Scopus','Docentes Blog'],
+      datasets: [
+        { label:'Masculino', data:[455,106], backgroundColor:alpha(C.male,0.8),   borderRadius:4, stack:'s' },
+        { label:'Femenino',  data:[302,86],  backgroundColor:alpha(C.female,0.8), borderRadius:4, stack:'s' }
+      ]
+    },
+    options: { ...D, plugins:{ ...D.plugins, legend:{display:true,labels:{color:C.tickColor,font:{size:11},boxWidth:12}} } }
+  });
+
+  mkChart('chartAutorProd', {
+    type:'bar',
+    data: {
+      labels: Object.keys(DATA.unitec.autorProd),
+      datasets: [{ data:Object.values(DATA.unitec.autorProd), backgroundColor:Object.keys(DATA.unitec.autorProd).map((_,i)=>alpha(C.accent,0.35+i*0.13)), borderRadius:4, borderWidth:0 }]
+    },
+    options: D
+  });
+
+  mkChart('chartAreaTematica', barCfg(
+    Object.keys(DATA.unitec.areaTematica),
+    Object.values(DATA.unitec.areaTematica),
+    C.accent5
+  ));
+
+  // ─ TOP PAPERS TABLE ──────────────────────────────────────────────────────────
+  const tbody = document.querySelector('#topPapersTable tbody');
+  DATA.unitec.topPapers.forEach((p,i)=>{
+    const tr = document.createElement('tr');
+    const facColor = {FI:'badge-blue',FCS:'badge-red',FP:'badge-yellow',FCAS:'badge-green',IIOH:'badge-purple'}[p.fac]||'badge-blue';
+    const typeColor = {Article:'badge-green','Letter':'badge-purple','Review':'badge-purple','Conf. Paper':'badge-yellow'}[p.type]||'badge-yellow';
+    tr.innerHTML=`
+      <td style="color:var(--text-muted);font-family:'IBM Plex Mono',monospace;font-size:12px">${i+1}</td>
+      <td style="max-width:380px;line-height:1.5;font-size:12.5px">${p.title}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:12px">${p.year}</td>
+      <td><span class="badge ${facColor}">${p.fac}</span></td>
+      <td><span class="badge ${typeColor}">${p.type}</span></td>
+      <td><span class="badge badge-blue" style="font-family:'IBM Plex Mono',monospace;font-size:13px">${p.cits}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // ─ TOP AUTHORS TABLE ─────────────────────────────────────────────────────────
+  const autbody = document.querySelector('#topAuthorsTable tbody');
+  DATA.unitec.topAuthors.forEach((a,i)=>{
+    const tr = document.createElement('tr');
+    const gColor = a.gender === 'M' ? 'badge-blue' : 'badge-red';
+    const gLabel = a.gender === 'M' ? '♂ M' : '♀ F';
+    tr.innerHTML=`
+      <td style="color:var(--text-muted);font-family:'IBM Plex Mono',monospace;font-size:12px">${i+1}</td>
+      <td style="font-size:13px">${a.name}</td>
+      <td><span class="badge badge-blue" style="font-family:'IBM Plex Mono',monospace">${a.docs}</span></td>
+      <td><span class="badge ${gColor}">${gLabel}</span></td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim)">${a.orcid ? a.orcid : '—'}</span></td>
+    `;
+    autbody.appendChild(tr);
+  });
+}
+
+// ─── THEME ────────────────────────────────────────────────────────────────────
+let isDark = true;
+
+function toggleTheme() {
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeIcon') && null;
+  document.querySelector('.theme-icon').textContent = isDark ? '🌙' : '☀️';
+  document.getElementById('themeLabel').textContent  = isDark ? 'Modo Claro' : 'Modo Oscuro';
+  // Redraw all charts with new colors
+  initCharts();
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    if(n.getAttribute('onclick')?.includes("'"+id+"'")) n.classList.add('active');
+  });
+  closeSidebar();
+  // Animate KPI values
+  document.querySelectorAll('#page-'+id+' .kpi-value').forEach((el,i)=>{
+    el.style.animationDelay = (i*0.07)+'s';
+    el.classList.remove('animate');
+    void el.offsetWidth;
+    el.classList.add('animate');
+  });
+}
+
+// ─── SIDEBAR MOBILE ───────────────────────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', ()=>{
+  initCharts();
+  // Animate initial KPIs
+  document.querySelectorAll('#page-overview .kpi-value').forEach((el,i)=>{
+    el.style.animationDelay = (i*0.07)+'s';
+    el.classList.add('animate');
+  });
+});
+</script>
+</body>
+</html>
